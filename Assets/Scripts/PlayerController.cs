@@ -1,11 +1,13 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
     private Rigidbody rb;
     private int count;
+    private int totalPickups;
 
     private float movementX;
     private float movementY;
@@ -16,6 +18,7 @@ public class PlayerController : MonoBehaviour
     public float damping = 2f;
 
     public TextMeshProUGUI countText;
+    public TextMeshProUGUI levelText;  // Nueva variable para mostrar el nivel
     public GameObject winTextObject;
 
     void Start()
@@ -27,8 +30,12 @@ public class PlayerController : MonoBehaviour
         // Establecer altura flotante con la posición inicial Y
         floatHeight = transform.position.y;
 
+        // Contar la cantidad total de pickups en la escena
+        totalPickups = GameObject.FindGameObjectsWithTag("PickUp").Length;
+
         count = 0;
         SetCountText();
+        SetLevelText();  // Llamamos a la función para mostrar el nivel
         winTextObject.SetActive(false);
     }
 
@@ -69,12 +76,42 @@ public class PlayerController : MonoBehaviour
 
     void SetCountText()
     {
-        countText.text = "Points: " + count.ToString();
+        countText.text = "Points: " + count.ToString() + " / " + totalPickups.ToString();
 
-        if (count >= 36)
+        if (count >= totalPickups)
         {
             winTextObject.SetActive(true);
             Destroy(GameObject.FindGameObjectWithTag("Enemy"));
+
+            // Cargar el siguiente nivel después de 2 segundos
+            Invoke("NextLevel", 2f);
+        }
+    }
+
+    // NUEVA FUNCIÓN: mostrar el nivel en formato "Nivel X-Y"
+    void SetLevelText()
+    {
+        int buildIndex = SceneManager.GetActiveScene().buildIndex;
+
+        // Cálculo del mundo y nivel a partir del índice de la escena
+        int world = (buildIndex / 3) + 1;
+        int stage = (buildIndex % 3) + 1;
+
+        levelText.text = "Nivel " + world + "-" + stage;
+    }
+
+    void NextLevel()
+    {
+        int nextSceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+
+        if (nextSceneIndex < SceneManager.sceneCountInBuildSettings)
+        {
+            SceneManager.LoadScene(nextSceneIndex);
+        }
+        else
+        {
+            Debug.Log("Has completado todos los niveles.");
+            // Aquí podrías cargar una pantalla de fin de juego o reiniciar el juego.
         }
     }
 
