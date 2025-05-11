@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
     public TextMeshProUGUI countText;
     public TextMeshProUGUI levelText;  // Nueva variable para mostrar el nivel
     public GameObject winTextObject;
+    public GameObject LossPanel;
 
     void Start()
     {
@@ -91,11 +92,11 @@ public class PlayerController : MonoBehaviour
     // NUEVA FUNCIÓN: mostrar el nivel en formato "Nivel X-Y"
     void SetLevelText()
     {
-        int buildIndex = SceneManager.GetActiveScene().buildIndex;
+        int baseLevelIndex = 1; // Ajusta esto si tus niveles empiezan en otra posición
+        int relativeIndex = SceneManager.GetActiveScene().buildIndex - baseLevelIndex;
 
-        // Cálculo del mundo y nivel a partir del índice de la escena
-        int world = (buildIndex / 3) + 1;
-        int stage = (buildIndex % 3) + 1;
+        int world = (relativeIndex / 3) + 1;
+        int stage = (relativeIndex % 3) + 1;
 
         levelText.text = "Nivel " + world + "-" + stage;
     }
@@ -111,7 +112,6 @@ public class PlayerController : MonoBehaviour
         else
         {
             Debug.Log("Has completado todos los niveles.");
-            // Aquí podrías cargar una pantalla de fin de juego o reiniciar el juego.
         }
     }
 
@@ -121,8 +121,12 @@ public class PlayerController : MonoBehaviour
         {
             Camera.main.transform.SetParent(null);
             Destroy(gameObject);
-            winTextObject.SetActive(true);
-            winTextObject.GetComponent<TextMeshProUGUI>().text = "Has Perdido!";
+
+            // Mostrar panel de derrota
+            LossPanel.SetActive(true);
+
+            // Opcional: Pausar el tiempo si quieres congelar el juego
+            Time.timeScale = 0f;
         }
     }
 }
