@@ -13,9 +13,15 @@ public class PlayerController : MonoBehaviour
     private float movementY;
     public float speed = 5f;
     public float rotationSpeed = 1000f;
+
     private float floatHeight;
     public float floatForce = 1f;
     public float damping = 2f;
+
+    public float floatAmplitude = 0.2f; // Qué tanto sube y baja
+    public float floatFrequency = 1f;   // Qué tan rápido sube y baja
+    private float baseHeight;
+    private float floatTimer;
 
     public TextMeshProUGUI countText;
     public TextMeshProUGUI levelText;
@@ -34,7 +40,8 @@ public class PlayerController : MonoBehaviour
         rb.useGravity = false;
         rb.freezeRotation = true;
 
-        floatHeight = transform.position.y;
+        baseHeight = transform.position.y;
+        floatHeight = baseHeight;
 
         totalPickups = GameObject.FindGameObjectsWithTag("PickUp").Length;
         count = 0;
@@ -60,15 +67,22 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Actualizamos el floatHeight con una onda sinusoidal
+        floatTimer += Time.fixedDeltaTime;
+        floatHeight = baseHeight + Mathf.Sin(floatTimer * floatFrequency * Mathf.PI * 2f) * floatAmplitude;
+
+        // Movimiento hacia adelante/atrás
         Vector3 moveDir = transform.forward * -movementY;
         rb.linearVelocity = new Vector3(moveDir.x * speed, rb.linearVelocity.y, moveDir.z * speed);
 
+        // Aplicar fuerza para mantener la altura flotante oscilante
         float currentHeight = transform.position.y;
         float difference = floatHeight - currentHeight;
         float verticalVelocity = rb.linearVelocity.y;
         float springForce = difference * floatForce - verticalVelocity * damping;
         rb.AddForce(Vector3.up * springForce);
 
+        // Rotación sobre el eje Y
         float rotationAmount = movementX * rotationSpeed * Time.fixedDeltaTime;
         transform.Rotate(0, rotationAmount * 2, 0);
     }
@@ -80,7 +94,6 @@ public class PlayerController : MonoBehaviour
             other.gameObject.SetActive(false);
             count += 1;
 
-            // ← Sonido al recolectar
             if (audioSource != null && pickupSound != null)
             {
                 audioSource.PlayOneShot(pickupSound);
@@ -105,7 +118,7 @@ public class PlayerController : MonoBehaviour
             winTextObject.SetActive(true);
             Destroy(GameObject.FindGameObjectWithTag("Enemy"));
 
-            Invoke("NextLevel", 1f);
+            Invoke("NextLevel", 3f);
         }
     }
 
@@ -137,14 +150,14 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             Destroy(GameObject.FindGameObjectWithTag("Enemy"));
-            
+
             if (backgroundMusic != null)
                 backgroundMusic.Stop();
 
             audioSource.PlayOneShot(deathSound);
             LossPanel.SetActive(true);
-
-            Invoke("Lose", 1.5f);  
+            Time.timeScale = 0f;
+            Invoke("Lose", 2f);
         }
     }
 
@@ -152,7 +165,5 @@ public class PlayerController : MonoBehaviour
     {
         Camera.main.transform.SetParent(null);
         Destroy(gameObject);
-
-        Time.timeScale = 0f;
     }
 }
