@@ -6,14 +6,16 @@ TagManager:
   tags:
   - PickUp
   - Enemy
+  - Wall
+  - PowerXRay
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Wall
   - Water
   - UI
-  - 
+  - Player
   - 
   - 
   - 
